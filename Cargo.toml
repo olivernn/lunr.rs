@@ -1,0 +1,6 @@
+[package]
+name = "lunr"
+version = "0.1.0"
+authors = ["Oliver Nightingale <oliver.nightingale1@gmail.com>"]
+
+[dependencies]
