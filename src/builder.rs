@@ -37,7 +37,7 @@ impl Builder {
 
                 *self.token_frequencies
                      .entry(field_ref.clone())
-                     .or_insert(HashMap::new())
+                     .or_insert_with(HashMap::new)
                      .entry(token)
                      .or_insert(0) += 1;
             }
@@ -45,17 +45,17 @@ impl Builder {
             self.field_refs.push(field_ref);
 
         }
-        return ();
+        ()
     }
 
     pub fn build(&mut self) {
         for field_ref in &self.field_refs {
-            let mut vector = Vector::new();
+            let mut vector: Vector = Default::default();
             let token_frequencies =
                 self.token_frequencies.get(field_ref).expect("token frequencies missing");
 
             for token in token_frequencies.keys() {
-                let tf = *token_frequencies.get(token).expect("token frequency missing") as f64;
+                let tf = f64::from(*token_frequencies.get(token).expect("token frequency missing"));
                 let posting = self.inverted_index.posting(token).expect("posting missing");
                 let idf = self.idf(posting);
                 let score = tf * idf;
@@ -71,7 +71,7 @@ impl Builder {
         let total_fields = self.field_lengths.len();
         let posting_fields = posting.len();
 
-        let x = (total_fields / 1 + posting_fields) as f64;
+        let x = (total_fields / (1 + posting_fields)) as f64;
 
         (1.0f64 + x.abs()).ln()
     }
