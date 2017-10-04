@@ -2,7 +2,7 @@
 
 A Lunr backend implemented in Rust.
 
-## Status
+## Status
 
 **Very** early stages.
 
