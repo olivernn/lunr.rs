@@ -2,16 +2,12 @@ use std::collections::BTreeMap;
 
 use serde::ser::{Serialize, Serializer, SerializeSeq};
 
-#[derive(Debug)]
+#[derive(Debug,Default)]
 pub struct Vector {
     elements: BTreeMap<u32, f64>,
 }
 
 impl Vector {
-    pub fn new() -> Vector {
-        Vector { elements: BTreeMap::new() }
-    }
-
     pub fn insert(&mut self, index: u32, score: f64) {
         self.elements.insert(index, score);
     }
@@ -23,7 +19,7 @@ impl Serialize for Vector {
     {
         let mut seq = serializer.serialize_seq(Some(self.elements.len() * 2))?;
 
-        for (index, score) in self.elements.iter() {
+        for (index, score) in &self.elements {
             seq.serialize_element(index)?;
             seq.serialize_element(score)?;
         }

@@ -14,7 +14,7 @@ impl InvertedIndex {
     pub fn add(&mut self, token: Token, field_ref: FieldRef) {
         let index = self.index.len();
 
-        let posting = self.index.entry(token).or_insert(Posting::new(index));
+        let posting = self.index.entry(token).or_insert_with(|| Posting::new(index));
 
         posting.insert(field_ref);
     }
@@ -64,7 +64,7 @@ impl Posting {
     pub fn insert(&mut self, field_ref: FieldRef) {
         self.field_postings
             .entry(field_ref.field_name)
-            .or_insert(FieldPosting::default())
+            .or_insert_with(FieldPosting::default)
             .insert(field_ref.document_ref)
     }
 
