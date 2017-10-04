@@ -1,5 +1,8 @@
+use serde::ser::{Serialize, Serializer};
+
 use std::convert::From;
 
+#[derive(Debug)]
 pub struct Tokens(Vec<Token>);
 
 impl Tokens {
@@ -33,9 +36,15 @@ impl IntoIterator for Tokens {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Hash, Clone)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
 pub struct Token {
     string: String
+}
+
+impl Serialize for Token {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+        serializer.serialize_str(&self.string)
+    }
 }
 
 #[cfg(test)]
