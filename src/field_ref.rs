@@ -3,7 +3,7 @@ use serde::ser::{Serialize, Serializer};
 #[derive(Hash, Eq, PartialEq, Debug, Clone)]
 pub struct FieldRef {
     pub document_ref: String,
-    pub field_name: String
+    pub field_name: String,
 }
 
 impl FieldRef {
@@ -17,7 +17,9 @@ impl FieldRef {
 
 
 impl Serialize for FieldRef {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
         serializer.serialize_str(&format!("{}/{}", self.field_name, self.document_ref))
     }
 }

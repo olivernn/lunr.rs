@@ -7,7 +7,7 @@ use lunr::document::{Document, Field};
 
 struct Quote {
     id: String,
-    text: String
+    text: String,
 }
 
 impl<'a> Document<'a> for Quote {
@@ -16,7 +16,10 @@ impl<'a> Document<'a> for Quote {
     }
 
     fn fields(&self) -> Vec<Field> {
-        vec![Field { name: String::from("text"), text: self.text.to_owned() }]
+        vec![Field {
+                 name: String::from("text"),
+                 text: self.text.to_owned(),
+             }]
     }
 }
 

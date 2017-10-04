@@ -7,16 +7,14 @@ use std::collections::{BTreeMap, HashSet, HashMap};
 
 #[derive(Default, Debug)]
 pub struct InvertedIndex {
-    index: BTreeMap<Token, Posting>
+    index: BTreeMap<Token, Posting>,
 }
 
 impl InvertedIndex {
     pub fn add(&mut self, token: Token, field_ref: FieldRef) {
         let index = self.index.len();
 
-        let posting = self.index
-            .entry(token)
-            .or_insert(Posting::new(index));
+        let posting = self.index.entry(token).or_insert(Posting::new(index));
 
         posting.insert(field_ref);
     }
@@ -31,10 +29,15 @@ impl InvertedIndex {
 }
 
 impl Serialize for InvertedIndex {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
         let mut seq = serializer.serialize_seq(Some(self.len()))?;
 
-        let pairs: Vec<(&Token, &Posting)> = self.index.iter().map(|pair| pair).collect();
+        let pairs: Vec<(&Token, &Posting)> = self.index
+            .iter()
+            .map(|pair| pair)
+            .collect();
 
         for pair in &pairs {
             seq.serialize_element(pair)?;
@@ -47,12 +50,15 @@ impl Serialize for InvertedIndex {
 #[derive(Debug)]
 pub struct Posting {
     pub index: usize,
-    field_postings: HashMap<String, FieldPosting>
+    field_postings: HashMap<String, FieldPosting>,
 }
 
 impl Posting {
     fn new(index: usize) -> Posting {
-        Posting { index: index, field_postings: HashMap::new() }
+        Posting {
+            index: index,
+            field_postings: HashMap::new(),
+        }
     }
 
     pub fn insert(&mut self, field_ref: FieldRef) {
@@ -68,7 +74,9 @@ impl Posting {
 }
 
 impl Serialize for Posting {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
         let mut posting = serializer.serialize_map(Some(self.len()))?;
 
         posting.serialize_entry("_index", &self.index)?;
@@ -83,7 +91,7 @@ impl Serialize for Posting {
 
 #[derive(Default, Debug)]
 struct FieldPosting {
-    documents: HashSet<String>
+    documents: HashSet<String>,
 }
 
 impl FieldPosting {
@@ -93,7 +101,9 @@ impl FieldPosting {
 }
 
 impl Serialize for FieldPosting {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
         let mut field_posting = serializer.serialize_map(Some(self.documents.len()))?;
 
         // empty for now...

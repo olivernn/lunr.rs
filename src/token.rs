@@ -13,9 +13,7 @@ impl Tokens {
 
 impl From<String> for Tokens {
     fn from(text: String) -> Tokens {
-        let tokens = text.split_whitespace()
-            .map(|s| Token { string: s.to_owned() })
-            .collect();
+        let tokens = text.split_whitespace().map(|s| Token { string: s.to_owned() }).collect();
 
         Tokens(tokens)
     }
@@ -38,11 +36,13 @@ impl IntoIterator for Tokens {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Hash, Clone)]
 pub struct Token {
-    string: String
+    string: String,
 }
 
 impl Serialize for Token {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
         serializer.serialize_str(&self.string)
     }
 }

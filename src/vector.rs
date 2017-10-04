@@ -4,7 +4,7 @@ use serde::ser::{Serialize, Serializer, SerializeSeq};
 
 #[derive(Debug)]
 pub struct Vector {
-    elements: BTreeMap<u32, f64>
+    elements: BTreeMap<u32, f64>,
 }
 
 impl Vector {
@@ -18,7 +18,9 @@ impl Vector {
 }
 
 impl Serialize for Vector {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
         let mut seq = serializer.serialize_seq(Some(self.elements.len() * 2))?;
 
         for (index, score) in self.elements.iter() {

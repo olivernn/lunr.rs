@@ -36,10 +36,10 @@ impl Builder {
                 self.inverted_index.add(token.clone(), field_ref.clone());
 
                 *self.token_frequencies
-                    .entry(field_ref.clone())
-                    .or_insert(HashMap::new())
-                    .entry(token)
-                    .or_insert(0) += 1;
+                     .entry(field_ref.clone())
+                     .or_insert(HashMap::new())
+                     .entry(token)
+                     .or_insert(0) += 1;
             }
 
             self.field_refs.push(field_ref);
@@ -51,7 +51,8 @@ impl Builder {
     pub fn build(&mut self) {
         for field_ref in &self.field_refs {
             let mut vector = Vector::new();
-            let token_frequencies = self.token_frequencies.get(field_ref).expect("token frequencies missing");
+            let token_frequencies =
+                self.token_frequencies.get(field_ref).expect("token frequencies missing");
 
             for token in token_frequencies.keys() {
                 let tf = *token_frequencies.get(token).expect("token frequency missing") as f64;

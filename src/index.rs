@@ -26,14 +26,19 @@ impl From<Builder> for Index {
             version: String::from("2.1.3"),
             pipeline: vec![],
             inverted_index: builder.inverted_index,
-            field_vectors: builder.field_vectors.into_iter().map(|(k, v)| (k, v)).collect(),
-            fields: builder.fields
+            field_vectors: builder.field_vectors
+                .into_iter()
+                .map(|(k, v)| (k, v))
+                .collect(),
+            fields: builder.fields,
         }
     }
 }
 
 impl Serialize for Index {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where S: Serializer {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: Serializer
+    {
         let mut index = serializer.serialize_struct("Index", 3)?;
 
         index.serialize_field("version", &self.version)?;
