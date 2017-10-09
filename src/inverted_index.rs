@@ -1,26 +1,27 @@
-use token::Token;
+use token::{Metadata, Term, Token};
 use field_ref::FieldRef;
 
-use serde::ser::{Serialize, Serializer, SerializeSeq, SerializeMap};
+use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 
-use std::collections::{BTreeMap, HashSet, HashMap};
+use std::collections::{BTreeMap, HashMap};
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct InvertedIndex {
-    index: BTreeMap<Token, Posting>,
+    index: BTreeMap<Term, Posting>,
 }
 
 impl InvertedIndex {
-    pub fn add(&mut self, token: Token, field_ref: FieldRef) {
+    pub fn add(&mut self, field_ref: FieldRef, token: Token) {
         let index = self.index.len();
 
-        let posting = self.index.entry(token).or_insert_with(|| Posting::new(index));
+        let posting =
+            self.index.entry(token.term.to_owned()).or_insert_with(|| Posting::new(index));
 
-        posting.insert(field_ref);
+        posting.insert(field_ref, token);
     }
 
-    pub fn posting(&self, token: &Token) -> Option<&Posting> {
-        self.index.get(token)
+    pub fn posting<'a>(&self, term: &'a Term) -> Option<&Posting> {
+        self.index.get(term)
     }
 
     fn len(&self) -> usize {
@@ -34,7 +35,7 @@ impl Serialize for InvertedIndex {
     {
         let mut seq = serializer.serialize_seq(Some(self.len()))?;
 
-        let pairs: Vec<(&Token, &Posting)> = self.index
+        let pairs: Vec<(&Term, &Posting)> = self.index
             .iter()
             .map(|pair| pair)
             .collect();
@@ -47,7 +48,6 @@ impl Serialize for InvertedIndex {
     }
 }
 
-#[derive(Debug)]
 pub struct Posting {
     pub index: usize,
     field_postings: HashMap<String, FieldPosting>,
@@ -61,11 +61,11 @@ impl Posting {
         }
     }
 
-    pub fn insert(&mut self, field_ref: FieldRef) {
+    pub fn insert(&mut self, field_ref: FieldRef, token: Token) {
         self.field_postings
             .entry(field_ref.field_name)
             .or_insert_with(FieldPosting::default)
-            .insert(field_ref.document_ref)
+            .insert(field_ref.document_ref, token)
     }
 
     pub fn len(&self) -> usize {
@@ -89,14 +89,19 @@ impl Serialize for Posting {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 struct FieldPosting {
-    documents: HashSet<String>,
+    // HashMap<document_ref, HashMap<metadata_key, Vec<Metadata>>>
+    documents: HashMap<String, HashMap<String, Vec<Metadata>>>,
 }
 
 impl FieldPosting {
-    fn insert(&mut self, document_ref: String) {
-        self.documents.insert(document_ref);
+    fn insert(&mut self, document_ref: String, token: Token) {
+        let metadata = self.documents.entry(document_ref).or_insert_with(HashMap::new);
+
+        for (key, value) in token.metadata {
+            metadata.entry(key).or_insert_with(Vec::new).push(value);
+        }
     }
 }
 
@@ -106,10 +111,7 @@ impl Serialize for FieldPosting {
     {
         let mut field_posting = serializer.serialize_map(Some(self.documents.len()))?;
 
-        // empty for now...
-        let metadata: HashMap<String, String> = HashMap::new();
-
-        for document_ref in &self.documents {
+        for (document_ref, metadata) in &self.documents {
             field_posting.serialize_entry(&document_ref, &metadata)?;
         }
 

@@ -3,7 +3,7 @@ use field_ref::FieldRef;
 use inverted_index::{InvertedIndex, Posting};
 use vector::Vector;
 
-use token::{Token, Tokens};
+use token::{Term, Tokens};
 use std::collections::{HashMap, HashSet};
 
 pub fn create() -> Builder {
@@ -16,7 +16,7 @@ pub struct Builder {
     pub field_vectors: HashMap<FieldRef, Vector>,
     pub fields: HashSet<String>,
 
-    token_frequencies: HashMap<FieldRef, HashMap<Token, u32>>,
+    term_frequencies: HashMap<FieldRef, HashMap<Term, u32>>,
     field_lengths: HashMap<FieldRef, usize>,
     field_refs: Vec<FieldRef>,
 }
@@ -33,17 +33,16 @@ impl Builder {
             *self.field_lengths.entry(field_ref.clone()).or_insert(0) += field_length;
 
             for token in tokens {
-                self.inverted_index.add(token.clone(), field_ref.clone());
-
-                *self.token_frequencies
+                *self.term_frequencies
                      .entry(field_ref.clone())
                      .or_insert_with(HashMap::new)
-                     .entry(token)
+                     .entry(token.term.to_owned())
                      .or_insert(0) += 1;
+
+                self.inverted_index.add(field_ref.clone(), token);
             }
 
             self.field_refs.push(field_ref);
-
         }
         ()
     }
@@ -51,12 +50,12 @@ impl Builder {
     pub fn build(&mut self) {
         for field_ref in &self.field_refs {
             let mut vector: Vector = Default::default();
-            let token_frequencies =
-                self.token_frequencies.get(field_ref).expect("token frequencies missing");
+            let term_frequencies =
+                self.term_frequencies.get(field_ref).expect("token frequencies missing");
 
-            for token in token_frequencies.keys() {
-                let tf = f64::from(*token_frequencies.get(token).expect("token frequency missing"));
-                let posting = self.inverted_index.posting(token).expect("posting missing");
+            for term in term_frequencies.keys() {
+                let tf = f64::from(*term_frequencies.get(term).expect("token frequency missing"));
+                let posting = self.inverted_index.posting(term).expect("posting missing");
                 let idf = self.idf(posting);
                 let score = tf * idf;
 
