@@ -1,5 +1,7 @@
 use erased_serde::Serialize;
 
+use tokenizer::Tokenizer;
+
 use std::convert::From;
 use std::collections::HashMap;
 use std::cmp::Ordering;
@@ -17,7 +19,7 @@ impl Tokens {
 
 impl From<String> for Tokens {
     fn from(text: String) -> Tokens {
-        let tokens = text.split_whitespace().map(Token::new).collect();
+        let tokens = Tokenizer::new(&text).collect();
 
         Tokens(tokens)
     }
@@ -47,7 +49,7 @@ pub struct Token {
 }
 
 impl Token {
-    fn new<S: Into<String>>(term: S) -> Token {
+    pub fn new<S: Into<String>>(term: S) -> Token {
         Token {
             term: term.into(),
             metadata: HashMap::new(),
